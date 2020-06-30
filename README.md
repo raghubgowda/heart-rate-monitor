@@ -64,7 +64,7 @@ mvn clean package
 Change the port argument if needed.
 
 
-###Query time!
+## Query time!
 
 Now you can use the HTTP endpoint exposed by the service to check the 
 metrics reading from the port provided [7071]
@@ -76,49 +76,49 @@ curl --location --request GET 'http://localhost:7071/state/authenticate?user=adm
 
 Once the token obtained, use it to access the other end-points
 
-####Message count by range for a device:
+#### Message count by range for a device:
 ```
 curl --location --request GET 'http://localhost:7071/state/windowed/msg-cnt-rng/Device1/1593507358000/1593507365000' \
 --header 'Authorization: Bearer YWRtaW4=' \
 ```
 
-####Message Count for all devices:
+#### Message Count for all devices:
 ```
 curl --location --request GET 'http://localhost:7071/state/keyvalues/msg-cnt/all' \
 --header 'Authorization: Bearer YWRtaW4=' \
 ```
-####Message count for a specific device:
+#### Message count for a specific device:
 ```
 curl --location --request GET 'http://localhost:7071/state/keyvalue/msg-cnt/Device4' \
 --header 'Authorization: Bearer YWRtaW4=' \
 ```
-####Max heart rate for all devices:
+#### Max heart rate for all devices:
 ```
 curl --location --request GET 'http://localhost:7071/state/keyvalues/max/all' \
 --header 'Authorization: Bearer YWRtaW4=' \
 ```
-####Max heart rate for a specific device:
+#### Max heart rate for a specific device:
 ```
 curl --location --request GET 'http://localhost:7071/state/keyvalue/max/Device5' \
 --header 'Authorization: Bearer YWRtaW4=' \
 ```
-####Minimum heart rate for all devices:
+#### Minimum heart rate for all devices:
 ```
 curl --location --request GET 'http://localhost:7071/state/keyvalues/min/all' \
 --header 'Authorization: Bearer YWRtaW4=' \
 ```
-####Minimum heart rate for a specific device:
+#### Minimum heart rate for a specific device:
 ```
 curl --location --request GET 'http://localhost:7071/state/keyvalue/min/Device3' \
 --header 'Authorization: Bearer YWRtaW4=' \
 ```
 
-####Get store info:
+#### Get store info:
 ```
 curl --location --request GET 'http://localhost:7071/state/instances' \
 --header 'Authorization: Bearer YWRtaW4=' \
 ```
 
-## Documentation
+## Endpoint Collections
 
 * [Postman Collection](https://www.getpostman.com/collections/e187ebe5bd07aa15c28b)
