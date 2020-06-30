@@ -1,0 +1,1 @@
+java -cp target/iot-0.0.1-SNAPSHOT-jar-with-dependencies.jar com.raghu.iot.consumer.HeartRateDataConsumer $1
