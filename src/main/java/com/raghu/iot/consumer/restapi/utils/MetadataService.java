@@ -68,21 +68,16 @@ public class MetadataService {
   public <K> HostStoreInfo streamsMetadataForStoreAndKey(final String store,
                                                          final K key,
                                                          final Serializer<K> serializer) {
-    // Get metadata for the instances of this Kafka Streams application hosting the store and
-    // potentially the value for key
-    final StreamsMetadata metadata = streams.metadataForKey(store, key, serializer);
-    if (metadata == null) {
+    HostStoreInfo hostStoreInfo = streamsMetadataForStoreAndKey(store, key, serializer);
+    if (hostStoreInfo == null) {
       throw new NotFoundException();
     }
-
-    return new HostStoreInfo(metadata.host(),
-                             metadata.port(),
-                             metadata.stateStoreNames());
+    return hostStoreInfo;
   }
 
   private List<HostStoreInfo> mapInstancesToHostStoreInfo(
-      final Collection<StreamsMetadata> metadatas) {
-    return metadatas.stream().map(metadata -> new HostStoreInfo(metadata.host(),
+      final Collection<StreamsMetadata> metadataList) {
+    return metadataList.stream().map(metadata -> new HostStoreInfo(metadata.host(),
                                                                 metadata.port(),
                                                                 metadata.stateStoreNames()))
         .collect(Collectors.toList());

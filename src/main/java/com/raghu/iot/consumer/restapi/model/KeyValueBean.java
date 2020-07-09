@@ -15,7 +15,6 @@ public class KeyValueBean {
   }
 
   public String getKey() {
-
     return key;
   }
 

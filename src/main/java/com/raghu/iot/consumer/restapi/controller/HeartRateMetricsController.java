@@ -7,6 +7,7 @@ import com.raghu.iot.consumer.restapi.utils.TokenUtil;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
+import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.state.*;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -75,7 +76,9 @@ public class HeartRateMetricsController {
     }
 
     // Lookup the KeyValueStore with the provided storeName
-    final ReadOnlyKeyValueStore<String, Long> store = streams.store(storeName, QueryableStoreTypes.keyValueStore());
+    StoreQueryParameters<ReadOnlyKeyValueStore<String, Long>> readOnlyKeyValueStoreStoreQueryParameters = StoreQueryParameters.fromNameAndType(storeName, QueryableStoreTypes.keyValueStore());
+    final ReadOnlyKeyValueStore<String, Long> store = streams.store(readOnlyKeyValueStoreStoreQueryParameters);
+
     if (store == null) {
       throw new NotFoundException();
     }
@@ -152,8 +155,9 @@ public class HeartRateMetricsController {
                                           @PathParam("from") final Long from,
                                           @PathParam("to") final Long to) {
     // Lookup the WindowStore with the provided storeName
-    final ReadOnlyWindowStore<String, Long> store = streams.store(storeName,
-                                                                  QueryableStoreTypes.windowStore());
+    StoreQueryParameters<ReadOnlyWindowStore<String, Long>> readOnlyKeyValueStoreStoreQueryParameters = StoreQueryParameters.fromNameAndType(storeName, QueryableStoreTypes.windowStore());
+    final ReadOnlyWindowStore<String, Long> store = streams.store(readOnlyKeyValueStoreStoreQueryParameters);
+
     if (store == null) {
       throw new NotFoundException();
     }
@@ -236,7 +240,9 @@ public class HeartRateMetricsController {
                                                        KeyValueIterator<String, Long>> rangeFunction) {
 
     // Get the KeyValue Store
-    final ReadOnlyKeyValueStore<String, Long> store = streams.store(storeName, QueryableStoreTypes.keyValueStore());
+    StoreQueryParameters<ReadOnlyKeyValueStore<String, Long>> readOnlyKeyValueStoreStoreQueryParameters = StoreQueryParameters.fromNameAndType(storeName, QueryableStoreTypes.keyValueStore());
+    final ReadOnlyKeyValueStore<String, Long> store = streams.store(readOnlyKeyValueStoreStoreQueryParameters);
+
     final List<KeyValueBean> results = new ArrayList<>();
     // Apply the function, i.e., query the store
     final KeyValueIterator<String, Long> range = rangeFunction.apply(store);
