@@ -10,7 +10,7 @@
 
 ## External Tools Used
 
-* [Postman](https://www.getpostman.com/) - API Development Environment (Testing Docmentation)
+* [Postman](https://www.getpostman.com/) - API Development Environment (Testing Documentation)
 
 ## Requirements
 
@@ -20,7 +20,7 @@ For building and running the application you need:
 - [Maven 4](https://maven.apache.org)
 - [Kafka](https://kafka.apache.org)
 
-##Pre-requisite:
+## Pre-requisite:
 
 #### 1. Setup Kafka  
 - Download Kafka binaries from [Kafka Org](https://www.apache.org/dyn/closer.cgi?path=/kafka/2.5.0/kafka_2.12-2.5.0.tgz)
@@ -58,7 +58,7 @@ mvn clean package
 ```
 #### 3. Start the Consumer!  
 ```shell
-./start-producer.sh 7071
+./start-consumer.sh 7071
 ```
 
 Change the port argument if needed.
@@ -76,18 +76,18 @@ curl --location --request GET 'http://localhost:7071/state/authenticate?user=adm
 
 Once the token obtained, use it to access the other end-points
 
-#### Message count by range for a device:
+#### Messages count by range for a device:
 ```
 curl --location --request GET 'http://localhost:7071/state/windowed/msg-cnt-rng/Device1/1593507358000/1593507365000' \
 --header 'Authorization: Bearer YWRtaW4=' \
 ```
 
-#### Message Count for all devices:
+#### Messages count for all devices:
 ```
 curl --location --request GET 'http://localhost:7071/state/keyvalues/msg-cnt/all' \
 --header 'Authorization: Bearer YWRtaW4=' \
 ```
-#### Message count for a specific device:
+#### Messages count for a specific device:
 ```
 curl --location --request GET 'http://localhost:7071/state/keyvalue/msg-cnt/Device4' \
 --header 'Authorization: Bearer YWRtaW4=' \
