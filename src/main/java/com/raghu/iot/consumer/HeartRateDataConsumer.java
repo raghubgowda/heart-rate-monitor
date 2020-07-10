@@ -8,6 +8,7 @@ import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.KeyValueStore;
@@ -20,16 +21,11 @@ import java.nio.file.Files;
 import java.time.Duration;
 import java.util.Properties;
 
-import static com.raghu.iot.producer.HeartRateDataProducer.TOPIC_NAME;
+import static com.raghu.iot.consumer.Constants.*;
 
 public class HeartRateDataConsumer {
 
-  static final String DEFAULT_HOST = "localhost";
   private static final Logger log = LoggerFactory.getLogger(HeartRateDataConsumer.class);
-  private static final String MIN_STORE = "min";
-  private static final String MAX_STORE = "max";
-  private static final String MSG_COUNT_STORE = "msg-cnt";
-  private static final String RANGE_MSG_CNT_STORE = "msg-cnt-rng";
 
   public static void main(final String[] args) throws Exception {
     if (args.length == 0 || args.length > 2) {
@@ -39,8 +35,8 @@ public class HeartRateDataConsumer {
     final String bootstrapServers = args.length > 1 ? args[1] : "localhost:9092";
 
     final Properties streamsConfiguration = new Properties();
-    streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "iot-data-processor");
-    streamsConfiguration.put(StreamsConfig.CLIENT_ID_CONFIG, "iot-data-processor-client");
+    streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, APP_ID);
+    streamsConfiguration.put(StreamsConfig.CLIENT_ID_CONFIG, CLIENT_ID);
     streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
     streamsConfiguration.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
     streamsConfiguration.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
@@ -78,6 +74,10 @@ public class HeartRateDataConsumer {
   }
 
   static KafkaStreams createStreams(final Properties streamsConfiguration) {
+    return new KafkaStreams(getTopology(), streamsConfiguration);
+  }
+
+  static Topology getTopology(){
     final StreamsBuilder builder = new StreamsBuilder();
     MinAndMaxSerde minAndMaxSerde = new MinAndMaxSerde();
     final KStream<String, String>
@@ -85,7 +85,7 @@ public class HeartRateDataConsumer {
     final KGroupedStream<String, String> groupedByDevice = dataStream.groupByKey();
 
     KTable<String, MinAndMax> minAndMaxKTable = groupedByDevice
-            .aggregate(() -> new MinAndMax(0L, 0L), (key, value, current) -> {
+            .aggregate(() -> new MinAndMax((long) Integer.MAX_VALUE, (long) Integer.MIN_VALUE), (key, value, current) -> {
                       Long newMin = Math.min(current.getMin(), Long.parseLong(value));
                       Long newMax = Math.max(current.getMax(), Long.parseLong(value));
                       return new MinAndMax(newMin, newMax);
@@ -110,7 +110,8 @@ public class HeartRateDataConsumer {
 
 
     // Create a State Store for with the all time message count per device
-    groupedByDevice.count(Materialized.<String, Long, KeyValueStore<Bytes, byte[]>>as(MSG_COUNT_STORE)
+    groupedByDevice.count(Materialized.<String, Long,
+            KeyValueStore<Bytes, byte[]>>as(MSG_COUNT_STORE)
             .withValueSerde(Serdes.Long()));
 
     // Create a Windowed State Store that contains the message count for every 1 minute per device
@@ -118,7 +119,7 @@ public class HeartRateDataConsumer {
             .count(Materialized.<String, Long, WindowStore<Bytes, byte[]>>as(RANGE_MSG_CNT_STORE)
                     .withValueSerde(Serdes.Long()));
 
-    return new KafkaStreams(builder.build(), streamsConfiguration);
+    return builder.build();
   }
 
 }

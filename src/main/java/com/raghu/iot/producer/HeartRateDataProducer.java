@@ -27,9 +27,10 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+import static com.raghu.iot.consumer.Constants.*;
+
 public class HeartRateDataProducer {
 
-  public static final String TOPIC_NAME = "heart-rate";
   private static final Logger log = LoggerFactory.getLogger(HeartRateDataProducer.class);
 
   public static void main(final String [] args) throws Exception {
@@ -37,14 +38,14 @@ public class HeartRateDataProducer {
 
     final Properties producerConfig = new Properties();
     producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-    producerConfig.put(ProducerConfig.ACKS_CONFIG, "all");
+    producerConfig.put(ProducerConfig.ACKS_CONFIG, ALL);
     producerConfig.put(ProducerConfig.RETRIES_CONFIG, 0);
     producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
 
     ProducerRecord<String, String> record;
     Random random = new Random();
-    String KEY_PREFIX = "Device";
+    String KEY_PREFIX = DEVICE_PREFIX;
 
     while(true){
       try (KafkaProducer<String, String> kafkaProducer = new KafkaProducer<>(producerConfig)) {
