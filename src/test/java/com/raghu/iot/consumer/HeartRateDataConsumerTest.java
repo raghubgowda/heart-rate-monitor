@@ -91,4 +91,19 @@ public class HeartRateDataConsumerTest {
         assertEquals(500L, (long) maxStore.get("Device3"));
         assertNull(maxStore.get("Device4"));
     }
+
+    @Test
+    public void shouldProduceValidAverageValueForStateStore() {
+        KeyValueStore<String, Double> avgStore = topologyTestDriver.getKeyValueStore(AVG_STORE);
+        inputTopic.pipeInput("Device1", "1");
+        inputTopic.pipeInput("Device1", "2");
+        inputTopic.pipeInput("Device1", "3");
+        inputTopic.pipeInput("Device1", "4");
+        assertEquals(2.5, avgStore.get("Device1"), 0.0);
+
+        inputTopic.pipeInput("Device2", "100");
+        assertEquals(100.0, avgStore.get("Device2"), 0.0);
+
+        assertNull(avgStore.get("Device3"));
+    }
 }

@@ -43,25 +43,22 @@ public class HeartRateDataProducer {
     producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
 
-    ProducerRecord<String, String> record;
     Random random = new Random();
-    String KEY_PREFIX = DEVICE_PREFIX;
 
     while(true){
       try (KafkaProducer<String, String> kafkaProducer = new KafkaProducer<>(producerConfig)) {
         for (int i = 1; i <= 5; i++) {
-          String key = KEY_PREFIX + i;
+          String key = DEVICE_PREFIX + i;
           String value = String.valueOf(random.nextInt(20));
-          System.out.println("Key:"+key+" Value: "+value);
-          log.info(String.format("Key: {} value: {value}", key, value));
-          record = new ProducerRecord<>(TOPIC_NAME, key, value);
+          log.info(String.format("Key: {key} value: {value}", key, value));
+
+          ProducerRecord<String, String> record = new ProducerRecord<>(TOPIC_NAME, key, value);
           RecordMetadata rm = kafkaProducer.send(record).get();
           log.info("Partition for key-value {0}::{1} is {2}", key, value, rm.partition());
         }
         TimeUnit.SECONDS.sleep(10);
       } catch (Exception e) {
         log.error("Producer thread was interrupted");
-        e.printStackTrace();
         throw e;
       } finally {
         log.info("Producer closed");

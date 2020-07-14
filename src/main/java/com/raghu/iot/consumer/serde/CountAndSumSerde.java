@@ -46,7 +46,7 @@ public class CountAndSumSerde implements Serde<CountAndSum> {
             public CountAndSum deserialize(String topic, byte[] countAndSum) {
                 String countAndSumStr = new String(countAndSum);
                 Long count = Long.valueOf(countAndSumStr.split(":")[0]);
-                Long sum = Long.valueOf(countAndSumStr.split(":")[1]);
+                Double sum = Double.valueOf(countAndSumStr.split(":")[1]);
                 return new CountAndSum(count, sum);
             }
 

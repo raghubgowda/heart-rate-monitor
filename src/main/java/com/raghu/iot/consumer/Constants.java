@@ -6,6 +6,7 @@ public interface Constants {
     String MIN_STORE = "min";
     String MAX_STORE = "max";
     String MSG_COUNT_STORE = "msg-cnt";
+    String AVG_STORE = "msg-avg";
     String RANGE_MSG_CNT_STORE = "msg-cnt-rng";
     String APP_ID = "iot-data-processor";
     String CLIENT_ID = "iot-data-processor-client";

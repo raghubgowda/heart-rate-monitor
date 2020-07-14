@@ -1,6 +1,8 @@
 package com.raghu.iot.consumer;
 
 import com.raghu.iot.consumer.restapi.controller.HeartRateMetricsController;
+import com.raghu.iot.consumer.serde.CountAndSum;
+import com.raghu.iot.consumer.serde.CountAndSumSerde;
 import com.raghu.iot.consumer.serde.MinAndMax;
 import com.raghu.iot.consumer.serde.MinAndMaxSerde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -12,7 +14,6 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.KeyValueStore;
-import org.apache.kafka.streams.state.WindowStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,17 +81,27 @@ public class HeartRateDataConsumer {
   static Topology getTopology(){
     final StreamsBuilder builder = new StreamsBuilder();
     MinAndMaxSerde minAndMaxSerde = new MinAndMaxSerde();
+    CountAndSumSerde countAndSumSerde = new CountAndSumSerde();
     final KStream<String, String>
             dataStream = builder.stream(TOPIC_NAME, Consumed.with(Serdes.String(), Serdes.String()));
     final KGroupedStream<String, String> groupedByDevice = dataStream.groupByKey();
 
-    KTable<String, MinAndMax> minAndMaxKTable = groupedByDevice
+    final KTable<String, MinAndMax> minAndMaxKTable = groupedByDevice
             .aggregate(() -> new MinAndMax((long) Integer.MAX_VALUE, (long) Integer.MIN_VALUE), (key, value, current) -> {
                       Long newMin = Math.min(current.getMin(), Long.parseLong(value));
                       Long newMax = Math.max(current.getMax(), Long.parseLong(value));
                       return new MinAndMax(newMin, newMax);
                     },
                     Materialized.with(Serdes.String(), minAndMaxSerde));
+
+    final KTable<String, CountAndSum> countAndSumTable = groupedByDevice
+            .aggregate(() -> new CountAndSum(0L, 0.0), (key, value, current) -> {
+                      Long count = current.getCount() + 1;
+                      Double sum = current.getSum() + Double.parseDouble(value);
+                      return new CountAndSum(count, sum);
+                    },
+                    Materialized.with(Serdes.String(), countAndSumSerde));
+
 
     // Create a State Store for with the all time min
     minAndMaxKTable
@@ -108,16 +119,20 @@ public class HeartRateDataConsumer {
                             .withKeySerde(Serdes.String())
                             .withValueSerde(Serdes.Long()));
 
-
     // Create a State Store for with the all time message count per device
-    groupedByDevice.count(Materialized.<String, Long,
-            KeyValueStore<Bytes, byte[]>>as(MSG_COUNT_STORE)
-            .withValueSerde(Serdes.Long()));
+    groupedByDevice.count(Materialized.as(MSG_COUNT_STORE));
 
     // Create a Windowed State Store that contains the message count for every 1 minute per device
     groupedByDevice.windowedBy(TimeWindows.of(Duration.ofMinutes(1)))
-            .count(Materialized.<String, Long, WindowStore<Bytes, byte[]>>as(RANGE_MSG_CNT_STORE)
-                    .withValueSerde(Serdes.Long()));
+            .count(Materialized.as(RANGE_MSG_CNT_STORE));
+
+    //Store the Average
+    countAndSumTable
+            .mapValues(value -> value.getSum() / value.getCount(),
+                    Materialized.<String, Double,
+                            KeyValueStore<Bytes, byte[]>>as(AVG_STORE)
+                            .withKeySerde(Serdes.String())
+                            .withValueSerde(Serdes.Double()));
 
     return builder.build();
   }
